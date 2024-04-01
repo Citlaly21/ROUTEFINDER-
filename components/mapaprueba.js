@@ -4,21 +4,14 @@ import backgroundImage from '../img/fondoazul.jpg';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import { Loader } from "@googlemaps/js-api-loader";
 import Icon from 'react-native-vector-icons/FontAwesome';
+import routesCoordinates from "./coordenadas";
 
 const Mapas = (props) => {
     const { navigation } = props;
     const [mapRef, setMapRef] = useState(null);
     const [showRoute, setShowRoute] = useState(false);
     const [routeCoordinates, setRouteCoordinates] = useState([]);
-    const [savedRoutes, setSavedRoutes] = useState([
-        { name: "Ruta 9", coordinates: [{ latitude: 18.46, longitude: -97.39 }, { latitude: 18.45, longitude: -97.40 }] },
-        { name: "Ruta 3", coordinates: [{ latitude: 18.45, longitude: -97.39 }, { latitude: 18.46, longitude: -97.40 }] },
-        { name: "Ruta 34", coordinates: [{ latitude: 18.47, longitude: -97.39 }, { latitude: 18.45, longitude: -97.41 }] },
-        { name: "Ruta 78", coordinates: [{ latitude: 18.48, longitude: -97.38 }, { latitude: 18.46, longitude: -97.42 }] },
-        { name: "Ruta 4", coordinates: [{ latitude: 18.47, longitude: -97.39 }, { latitude: 18.46, longitude: -97.40 }] },
-        { name: "Ruta 12", coordinates: [{ latitude: 18.46, longitude: -97.39 }, { latitude: 18.45, longitude: -97.40 }] },
-        { name: "ruta x", coordinates: [{ latitude: 18.45, longitude: -97.39}, {latitude: 18.45, longitude: -97.39}]}
-    ]);
+    const [savedRoutes, setSavedRoutes] = useState(routesCoordinates)
     const [selectedRouteIndex, setSelectedRouteIndex] = useState(null);
     const [showSidebar, setShowSidebar] = useState(false); // Estado para controlar si se muestra la barra lateral
     const [comments, setComments] = useState(""); // Estado para almacenar los comentarios
@@ -33,8 +26,9 @@ const Mapas = (props) => {
     const handleRoutePress = (index) => {
         setSelectedRouteIndex(index);
         setRouteCoordinates(savedRoutes[index].coordinates);
-        setShowRoute(true);
+        setShowRoute(prevState => !prevState); // Cambiar el estado actual de showRoute
     };
+    
 
     const toggleSidebar = () => {
         setShowSidebar(!showSidebar);
@@ -91,6 +85,7 @@ const Mapas = (props) => {
                                     latitudeDelta: 0.0922,
                                     longitudeDelta: 0.0421,
                                 }}
+                                showsUserLocation={true}
                             >
                                 {showRoute && (
                                     <Polyline
