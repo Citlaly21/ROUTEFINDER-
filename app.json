@@ -14,18 +14,45 @@
     "assetBundlePatterns": [
       "**/*"
     ],
-    "permissions": ["location"], 
+    "permissions": [
+      "location"
+    ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "config": {
+        "googleMapsApiKey": "AIzaSyBiNGlYdMIt0Ov4qGQEzZYn835FUv1eI0k"
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      }
+        "foregroundImage": "./img/logo2.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyBiNGlYdMIt0Ov4qGQEzZYn835FUv1eI0k"
+        }
+      },
+      "web": {
+        "favicon": "./assets/favicon.png"
+      },
+      "extra": {
+        "eas": {
+          "projectId": "957b1781-9bf4-48c3-bc46-44822189f3d1"
+        }
+      },
+      "runtimeVersion": {
+        "policy": "appVersion"
+      },
+      "updates": {
+        "url": "https://u.expo.dev/957b1781-9bf4-48c3-bc46-44822189f3d1"
+      },
+      "package": "com.citlajager21.RouteFinder"
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
+    "extra": {
+      "eas": {
+        "projectId": "957b1781-9bf4-48c3-bc46-44822189f3d1"
+      }
     }
   }
 }

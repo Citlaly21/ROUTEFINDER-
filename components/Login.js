@@ -1,11 +1,43 @@
-import React from "react";
-import { StatusBarBar } from "expo-status-bar";
-import react from 'react';
+import React, { useState } from "react";
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image, StatusBar } from 'react-native';
+import { signInWithEmailAndPassword } from '@firebase/auth';
+import { initializeApp } from '@firebase/app';
+import { getAuth } from '@firebase/auth';
+
+// Configuración de Firebase
+const firebaseConfig = {
+    apiKey: "AIzaSyDRplYQcLl5p6G1fW4IBAwbWgYKMnri9eM",
+    authDomain: "route-finder-75a0b.firebaseapp.com",
+    databaseURL: "https://route-finder-75a0b-default-rtdb.firebaseio.com",
+    projectId: "route-finder-75a0b",
+    storageBucket: "route-finder-75a0b.appspot.com",
+    messagingSenderId: "833216771763",
+    appId: "1:833216771763:web:cbaec2a9392817195222c6",
+    measurementId: "G-HMMHJH8PPC"
+};
+
+// Inicializa Firebase
+const app = initializeApp(firebaseConfig);
+// Obtiene la instancia de autenticación
+const auth = getAuth(app);
 
 export default function Login(props){
 
     const {navigation} = props;
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+
+    const handleLogin = async () => {
+        try {
+            // Inicia sesión en Firebase
+            await signInWithEmailAndPassword(auth, email, password);
+            console.log('Usuario inició sesión exitosamente!');
+            // Aquí puedes realizar otras acciones, como redireccionar a otra pantalla
+            navigation.navigate('Mapas');
+        } catch (error) {
+            console.error('Error al iniciar sesión:', error.message);
+        }
+    };
 
     return(
         <View style={{flex: 1, alignItems:'center'}}>
@@ -26,9 +58,6 @@ export default function Login(props){
                     }}
                 source={require('../img/ROUTEFINDER.png')}
                 />
-
-                
-
             </View>
 
             <View style={styles.container}>
@@ -42,42 +71,36 @@ export default function Login(props){
                         margin:15
                     }}>Iniciar sesión</Text>
 
-                    <Text style={styles.TextStyle3}>Correo electronico</Text>
+                    <Text style={styles.TextStyle3}>Correo electrónico</Text>
                     <TextInput style={styles.TextInputStyle} 
-                    keyboardType="email-address" 
-                    placeholder=" email"></TextInput>
+                        keyboardType="email-address" 
+                        placeholder="Correo electrónico"
+                        value={email}
+                        onChangeText={setEmail}
+                    />
 
                     <View style={{height:20}}/>
 
                     <Text style={styles.TextStyle3}>Contraseña</Text>
                     <TextInput style={styles.TextInputStyle} 
-                    secureTextEntry={true}
-                    placeholder="contraseña"></TextInput>
-
-                    <TouchableOpacity>
-                        <Text style={[styles.TextStyle3,{
-                        color:"#002060",
-                        textAlign:"center",
-                        fontSize:14
-                    }]}>¿Olvidaste tu contraseña?</Text>
-                    </TouchableOpacity>
+                        secureTextEntry={true}
+                        placeholder="Contraseña"
+                        value={password}
+                        onChangeText={setPassword}
+                    />
 
                     <View style={{height:30}}/>
 
-                    <TouchableOpacity style={styles.buttonTouchable}    onPress={() => navigation.navigate('Mapas')} >
-
+                    <TouchableOpacity style={styles.buttonTouchable} onPress={handleLogin}>
                         <Text style={styles.TextStyle2}>Entrar</Text>
-
                     </TouchableOpacity>
                 </View>
                 <View>
                     <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-                        <Text style={styles.sinCuenta}>¿No tienes cuenta? Registrate</Text>
+                        <Text style={styles.sinCuenta}>¿No tienes cuenta? Regístrate</Text>
                     </TouchableOpacity>
                 </View>
             </View>
-
-
         </View>
     )
 }
@@ -132,7 +155,7 @@ const styles=StyleSheet.create({
     container:{
         backgroundColor:'#FFF',
         paddingHorizontal: 88,
-        paddindTop: 40,
+        paddingTop: 40,
         flex:2,
         borderTopLeftRadius: 30,
         borderTopRightRadius: 30,
@@ -145,5 +168,4 @@ const styles=StyleSheet.create({
         fontSize:16,
         textAlign:"center"
     }
-}
-)
+});
