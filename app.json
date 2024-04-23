@@ -4,7 +4,7 @@
     "slug": "RouteFinder",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./img/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
@@ -25,9 +25,12 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./img/logo2.png",
+        "foregroundImage": "./img/icon.png",
         "backgroundColor": "#FFFFFF"
       },
+      "permissions": [
+        "ACCESS_FINE_LOCATION"
+      ],
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyBiNGlYdMIt0Ov4qGQEzZYn835FUv1eI0k"

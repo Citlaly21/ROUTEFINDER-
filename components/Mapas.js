@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Text, View, StyleSheet, ImageBackground, TouchableOpacity, ScrollView, Image, TextInput } from "react-native";
-import backgroundImage from '../img/fondoazul.jpg';
+import { ToastAndroid } from 'react-native';
+import { Text, View, StyleSheet,  TouchableOpacity, ScrollView, Image, TextInput } from "react-native";
 import MapView, { Polyline, PROVIDER_GOOGLE } from 'react-native-maps';;
 import Icon from 'react-native-vector-icons/FontAwesome';
 import routesCoordinates from "./coordenadas";
 import { getDatabase, ref, push } from '@firebase/database';
 import { initializeApp } from '@firebase/app';
+import * as Location from 'expo-location';
+
 
 const firebaseConfig = {
     apiKey: "AIzaSyDRplYQcLl5p6G1fW4IBAwbWgYKMnri9eM",
@@ -18,9 +20,9 @@ const firebaseConfig = {
     measurementId: "G-HMMHJH8PPC"
 };
 
-// Inicializa Firebase
+// Inicializamos el Firebase
 const app = initializeApp(firebaseConfig);
-// Obtiene la instancia de la base de datos
+// Obtenemos la instancia de la base de datos
 const db = getDatabase(app);
 
 const Mapas = (props) => {
@@ -33,11 +35,27 @@ const Mapas = (props) => {
     const [showSidebar, setShowSidebar] = useState(false);
     const [comments, setComments] = useState("");
 
+    useEffect(() => {
+        (async () => {
+            //para acceder a la ubicación del usuario
+            const { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') {
+                console.error('Permission to access location was denied');
+                ToastAndroid.show('Permiso de ubicación denegado', ToastAndroid.SHORT);
+            }
+        })();
+    }, []);
+
     const handleRoutePress = (index) => {
-        setSelectedRouteIndex(index);
-        setRouteCoordinates(savedRoutes[index].coordinates);
-        setShowRoute(prevState => !prevState); // Cambiar el estado actual de showRoute
-    };
+        if (index === selectedRouteIndex) {
+            setShowRoute(prevState => !prevState); 
+        } else {
+            setSelectedRouteIndex(index);
+            setRouteCoordinates(savedRoutes[index].coordinates);
+            setShowRoute(true); 
+        }
+    }; // se modifico esta parte para que ahora al seleccionar una ruta
+    //se oculte automaticamente la otra,
     
 
     const toggleSidebar = () => {
@@ -48,107 +66,97 @@ const Mapas = (props) => {
         setComments(text);
     };
 
+    //esta parte hace referencia  a los commentarios y a la base de datos en tiempo real
     const handleCommentsSubmit = () => {
-        // Guarda el comentario en la base de datos
-        const commentsRef = ref(db, 'comments');
-        push(commentsRef, comments);
-
-        // Limpia el campo de comentarios después de enviar
-        setComments("");
-    };
+        if (comments.trim() !== "") { 
+            const commentsRef = ref(db, 'comments');
+            push(commentsRef, comments.trim());
+            setComments("");
+            ToastAndroid.show('Comentario enviado correctamente', ToastAndroid.SHORT);
+        }
+    }; 
 
     return (
         <View style={styles.container}>
-            
-                <View style={styles.content}>
-                    <View style={styles.header}>
-                        {/* Barra negra transparente */}
-                        <View style={styles.transparentBar}></View>
+            <View style={styles.content}>
+                <View style={styles.header}>
+                    <View style={styles.transparentBar}></View>
+                    <Text style={styles.title}>ROUTE FINDER</Text>
+                    <Image source={require('../img/logo2.png')} style={styles.icon} />
+                    {!showSidebar && (
+                        <TouchableOpacity onPress={toggleSidebar} style={styles.toggleSidebarButton}>
+                            <Icon name="bars" size={20} color="white" />
+                        </TouchableOpacity>
+                    )}
+                </View>
 
-                        <Text style={styles.title}>ROUTE FINDER</Text>
-                        <Image source={require('../img/logo2.png')} style={styles.icon} />
-                        {/* Botón para mostrar/ocultar la barra lateral */}
-                        {!showSidebar && (
-                            <TouchableOpacity onPress={toggleSidebar} style={styles.toggleSidebarButton}>
-                                <Icon name="bars" size={20} color="white" />
-                            </TouchableOpacity>
+                {showSidebar && (
+                    <TouchableOpacity
+                        style={styles.overlay}
+                        activeOpacity={1}
+                        onPress={toggleSidebar}
+                    />
+                )}
+
+                {showSidebar && (
+                    <View style={styles.sidebar}>
+                        <Text style={styles.title}>Rutas</Text>
+                        <ScrollView style={styles.savedRoutesList}>
+                            {savedRoutes.map((route, index) => (
+                                <TouchableOpacity key={index} style={styles.savedRouteItem} onPress={() => handleRoutePress(index)}>
+                                    <Text style={styles.savedRouteName}>{route.name}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                        <TouchableOpacity onPress={toggleSidebar} style={styles.closeSidebarButton}>
+                            <Icon name="times" size={20} color="white" />
+                        </TouchableOpacity>
+                    </View>
+                )}
+
+                <ScrollView>
+                    <View style={styles.mapContainer}>
+                        <MapView
+                            style={styles.map}
+                            ref={(ref) => setMapRef(ref)}
+                            provider={PROVIDER_GOOGLE}
+                            initialRegion={{
+                                latitude: 18.4616,
+                                longitude: -97.3924,
+                                latitudeDelta: 0.0922,
+                                longitudeDelta: 0.0421,
+                            }}
+                            showsUserLocation={true}
+                        >
+                            {showRoute && (
+                                <Polyline
+                                    coordinates={routeCoordinates}
+                                    strokeColor="#FF0000"
+                                    strokeWidth={2}
+                                />
+                            )}
+                        </MapView>
+                        {selectedRouteIndex !== null && (
+                            <View style={styles.routeNameContainer}>
+                                <Text style={styles.routeName}>{savedRoutes[selectedRouteIndex].name}</Text>
+                            </View>
                         )}
                     </View>
 
-                    {/* Barra lateral */}
-                    {showSidebar && (
-                        <View style={styles.sidebar}>
-                            <Text style={styles.title}>Rutas</Text>
-                            <ScrollView style={styles.savedRoutesList}>
-                                {savedRoutes.map((route, index) => (
-                                    <TouchableOpacity key={index} style={styles.savedRouteItem} onPress={() => handleRoutePress(index)}>
-                                        <Text style={styles.savedRouteName}>{route.name}</Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </ScrollView>
-                            {/* Icono de cierre de la barra lateral */}
-                            <TouchableOpacity onPress={toggleSidebar} style={styles.closeSidebarButton}>
-                                <Icon name="times" size={20} color="white" />
-                            </TouchableOpacity>
-                        </View>
-                    )}
-
-                    <ScrollView>
-                        <View style={styles.mapContainer}>
-                            <MapView
-                                style={styles.map}
-                                ref={(ref) => setMapRef(ref)}
-                                provider={PROVIDER_GOOGLE}
-                                initialRegion={{
-                                    latitude: 18.4616,
-                                    longitude: -97.3924,
-                                    latitudeDelta: 0.0922,
-                                    longitudeDelta: 0.0421,
-                                }}
-                                showsUserLocation={true}
-                            >
-                                {showRoute && (
-                                    <Polyline
-                                        coordinates={routeCoordinates}
-                                        strokeColor="#FF0000"
-                                        strokeWidth={2}
-                                    />
-                                )}
-                            </MapView>
-                            {/* Mostrar el nombre de la ruta seleccionada */}
-                            {selectedRouteIndex !== null && (
-                                <View style={styles.routeNameContainer}>
-                                    <Text style={styles.routeName}>{savedRoutes[selectedRouteIndex].name}</Text>
-                                </View>
-                            )}
-                        </View>
-
-                        {/* Sección de comentarios */}
-                        <View style={styles.commentsContainer}>
-                            <Text style={styles.commentsTitle}>Comentarios</Text>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Nombre"
-                                onChangeText={handleCommentsChange}
-                            />
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Email"
-                                onChangeText={handleCommentsChange}
-                            />
-                            <TextInput
-                                style={[styles.input, styles.textarea]}
-                                placeholder="Mensaje"
-                                multiline={true}
-                                onChangeText={handleCommentsChange}
-                            />
-                            <TouchableOpacity style={styles.submitButton} onPress={handleCommentsSubmit}>
-                                <Text style={styles.submitButtonText}>Enviar</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </ScrollView>
-                </View>
-            
+                    <View style={styles.commentsContainer}>
+                        <Text style={styles.commentsTitle}>Deja un comentario</Text>
+                        <TextInput
+                            style={[styles.input, styles.textarea]}
+                            placeholder="Mensaje"
+                            multiline={true}
+                            onChangeText={handleCommentsChange}
+                        />
+                        <TouchableOpacity style={styles.submitButton} onPress={handleCommentsSubmit}>
+                            <Text style={styles.submitButtonText}>Enviar</Text>
+                        </TouchableOpacity>
+                    </View>
+                </ScrollView>
+            </View>
         </View>
     );
 };
@@ -267,7 +275,7 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     textarea: {
-        height: 100,
+        height: 80,
     },
     submitButton: {
         backgroundColor: 'gray',
@@ -280,6 +288,15 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         textAlign: 'center',
     },
+    overlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'transparent',
+    },
+    
 });
 
 export default Mapas;

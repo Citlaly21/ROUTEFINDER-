@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image, StatusBar } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image, StatusBar, Alert } from 'react-native';
 import { signInWithEmailAndPassword } from '@firebase/auth';
 import { initializeApp } from '@firebase/app';
 import { getAuth } from '@firebase/auth';
@@ -27,6 +27,9 @@ export default function Login(props){
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
+    const [emailError, setEmailError] = useState('');
+    const [passwordError, setPasswordError] = useState('');
+
     const handleLogin = async () => {
         try {
             // Inicia sesión en Firebase
@@ -36,6 +39,25 @@ export default function Login(props){
             navigation.navigate('Mapas');
         } catch (error) {
             console.error('Error al iniciar sesión:', error.message);
+            setEmailError('');
+            setPasswordError('');
+
+            if (error.code === 'auth/wrong-password') {
+                Alert.alert('Error', 'La contraseña es incorrecta.');
+            } else if (error.code === 'auth/user-not-found') {
+                Alert.alert('Usuario no encontrado', 'El correo electrónico ingresado no esta registrado. Por favor, cree una cuenta.');
+            } else if(email === '' && password === ''){
+                setEmailError('Ingresa tu correo electronico');
+                setPasswordError('Ingresa tu contraseña');
+            } else if(email === ''){
+                setEmailError('Ingresa tu correo electronico');
+            } else if(error.code === 'auth/invalid-email'){
+                Alert.alert('Correo invalido', 'El correo que ha ingresado es invalido');
+            } else if(error.code === 'auth/missing-password'){
+                setPasswordError('Ingresa tu contraseña');
+            } else {
+                Alert.alert('Error', 'Hubo un problema al crear el usuario. Por favor, inténtalo de nuevo más tarde.');
+            }
         }
     };
 
@@ -78,6 +100,7 @@ export default function Login(props){
                         value={email}
                         onChangeText={setEmail}
                     />
+                    {emailError !== '' && <Text style={{ color: 'red' }}>{emailError}</Text>}
 
                     <View style={{height:20}}/>
 
@@ -88,6 +111,13 @@ export default function Login(props){
                         value={password}
                         onChangeText={setPassword}
                     />
+                    {passwordError !== '' && <Text style={{ color: 'red' }}>{passwordError}</Text>}
+
+                    <View>
+                    <TouchableOpacity onPress={() => navigation.navigate('reestablecerContraseña')}>
+                        <Text style={styles.sinCuenta}>Olvide mi contraseña</Text>
+                    </TouchableOpacity>
+                    </View>
 
                     <View style={{height:30}}/>
 

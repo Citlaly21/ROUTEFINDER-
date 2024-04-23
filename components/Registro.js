@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, ImageBackground } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, ImageBackground, Alert } from 'react-native';
 import { createUserWithEmailAndPassword } from '@firebase/auth';
 import { initializeApp } from '@firebase/app';
 import { getAuth } from '@firebase/auth';
@@ -26,17 +26,40 @@ export default function Register(props) {
     const { navigation } = props;
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [nombre, setNombre] = useState('');
+    
+    const [emailError, setEmailError] = useState('');
+    const [passwordError, setPasswordError] = useState('');
 
     const handleRegister = async () => {
         try {
             // Crear cuenta de usuario en Firebase
             await createUserWithEmailAndPassword(auth, email, password);
             console.log('Usuario creado exitosamente!');
+            Alert.alert('Usuario registrado', 'El usuario se ha creado correctamente.');
             // Aquí puedes realizar otras acciones, como redireccionar a la pantalla de inicio de sesión
             navigation.navigate('Mapas');
         } catch (error) {
             console.error('Error al crear usuario:', error.message);
+            setEmailError('');
+            setPasswordError('');
+
+            // Alerta de error contraseña y correo en uso
+            if (error.code === 'auth/weak-password') {
+                Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres.');
+            } else if (error.code === 'auth/email-already-in-use') {
+                Alert.alert('Error', 'El correo electrónico ingresado ya está en uso. Por favor, inicia sesión o utiliza otro correo electrónico.');
+            } else if(email === '' && password === ''){
+                setEmailError('Ingresa tu correo electronico');
+                setPasswordError('Ingresa tu contraseña');
+            } else if(error.code === 'auth/invalid-email'){
+                Alert.alert('Correo invalido', 'El correo que ha ingresado es invalido');
+            } else if(email === ''){
+                setEmailError('Ingresa tu correo electronico');
+            } else if(error.code === 'auth/missing-password'){
+                setPasswordError('Ingresa tu contraseña');
+            } else {
+                Alert.alert('Error', 'Hubo un problema al crear el usuario. Por favor, inténtalo de nuevo más tarde.');
+            }
         }
     };
 
@@ -55,15 +78,29 @@ export default function Register(props) {
                 height: 550
             }}>
                 <Text style={styles.TextStyle}>Registro</Text>
-                <View style={{ height: 30 }} />
-                <Text style={styles.TextStyle3}>Nombre</Text>
-                <TextInput style={styles.TextInputStyle} placeholder="Nombre" value={nombre} onChangeText={setNombre}></TextInput>
-                <View style={{ height: 10 }} />
+                <View style={{ height: 75 }} />
+
                 <Text style={styles.TextStyle3}>Correo</Text>
-                <TextInput style={styles.TextInputStyle} keyboardType="email-address" placeholder="ejemplo@email.com" value={email} onChangeText={setEmail}></TextInput>
+
+                <TextInput style={styles.TextInputStyle} 
+                keyboardType="email-address" 
+                placeholder="ejemplo@email.com" 
+                value={email} 
+                onChangeText={setEmail} 
+                autoCapitalize="none"></TextInput>
+                {emailError !== '' && <Text style={{ color: 'red' }}>{emailError}</Text>}
+
                 <View style={{ height: 10 }} />
                 <Text style={styles.TextStyle3}>Contraseña</Text>
-                <TextInput style={styles.TextInputStyle} secureTextEntry placeholder="contraseña" value={password} onChangeText={setPassword}></TextInput>
+
+                <TextInput style={styles.TextInputStyle} 
+                secureTextEntry 
+                placeholder="contraseña" 
+                value={password} 
+                onChangeText={setPassword} 
+                autoCapitalize="none"></TextInput>
+                {passwordError !== '' && <Text style={{ color: 'red' }}>{passwordError}</Text>}
+
                 <View style={{ height: 45 }} />
                 {/* Cambia el botón para que ejecute handleRegister */}
                 <TouchableOpacity style={styles.buttonTouchable} onPress={handleRegister}>
