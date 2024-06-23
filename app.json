@@ -4,7 +4,7 @@
     "slug": "RouteFinder",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./img/icon.png",
+    "icon": "./src/assets/images/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
